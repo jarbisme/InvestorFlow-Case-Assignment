@@ -1,26 +1,26 @@
-﻿using MinimalAPI.Models;
+﻿using MinimalAPI.Data;
+using MinimalAPI.Models;
 
 namespace MinimalAPI.Services
 {
     public class ContactService : IContactService
     {
+        private readonly IContactRepository _repository;
 
-        public Task<List<Contact>> GetAllContactsAsync()
+        public ContactService(IContactRepository repository)
         {
-            var contacts = new[]
-            {
-                new Contact { Id = 1, Name = "Alice", Email = "alice@email.com", Phone = "8091234567" },
-                new Contact { Id = 2, Name = "Mario", Email = "mario@email.com", Phone = "8290983872" },
-                new Contact { Id = 3, Name = "Peach", Email = "peach@email.com", Phone = "8290713387" }
-            };
+            _repository = repository;
+        }
 
-            return Task.FromResult(contacts.ToList());
+        public async Task<List<Contact>> GetAllContactsAsync()
+        {
+           
+            return await _repository.GetAllAsync();
         }
 
         public Task<Contact?> GetContactByIdAsync(int id)
         {
-            var contact = new Contact { Id = 3, Name = "Peach", Email = "peach@email.com", Phone = "8290713387" };
-            return Task.FromResult(contact);
+            return _repository.GetByIdAsync(id);
         }
         public Task<Contact> CreateContactAsync(Contact contact)
         {
