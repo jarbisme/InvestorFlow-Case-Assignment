@@ -1,8 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+using MinimalAPI.Data;
 using MinimalAPI.Endpoints;
 using MinimalAPI.Models;
 using MinimalAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<ApplicationDbContext>(options => {
+    options.UseInMemoryDatabase("InMemoryDb");
+});
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
