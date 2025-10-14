@@ -1,5 +1,6 @@
 ﻿using MinimalAPI.Models;
 using MinimalAPI.Services;
+using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 
 namespace MinimalAPI.Endpoints
@@ -60,25 +61,31 @@ namespace MinimalAPI.Endpoints
 
             var result = await contactService.CreateContactAsync(contact);
 
-            if (!result.IsSuccess)
+            if (result.IsFailed)
             {
-                if(result.ValidationErrors.Any())
+                // Extract error messages from FluentResults
+                var errorMessages = result.Errors.Select(e => e.Message).ToList();
+
+                // Check if these are validation errors (you can add custom error types in your service)
+                // For now, treat all errors with multiple messages as validation errors
+                if (errorMessages.Count > 1 || result.Errors.Any(e => e.Metadata.ContainsKey("ValidationError")))
                 {
                     var failResponse = ApiResponse<Contact>.Fail(
                         "Validation errors occurred while creating the contact.",
-                        result.ValidationErrors);
+                        result.Errors.Select(e => e.Message).ToList());
                     return Results.BadRequest(failResponse);
                 }
 
+                // Single error or unexpected error - treat as server error
                 var errorResponse = ApiResponse<Contact>.Error(
-                    result.ErrorMessage ?? "An error ocurred");
+                    errorMessages.FirstOrDefault() ?? "An error ocurred");
                 return Results.Json(errorResponse, statusCode: 500);
             }
 
             var successResponse = ApiResponse<Contact>.Success(
-                result.Data!,
+                result.Value!,
                 "Contact created successfully.");
-            return Results.Created($"/api/contacts/{result.Data!.Id}", successResponse);
+            return Results.Created($"/api/contacts/{result.Value!.Id}", successResponse);
         }
 
         private static async Task<IResult> UpdateContact(int id, Contact contact, IContactService contactService)

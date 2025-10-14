@@ -1,4 +1,5 @@
-﻿using MinimalAPI.Data;
+﻿using FluentResults;
+using MinimalAPI.Data;
 using MinimalAPI.Models;
 
 namespace MinimalAPI.Services
@@ -14,7 +15,7 @@ namespace MinimalAPI.Services
 
         public async Task<List<Contact>> GetAllContactsAsync()
         {
-           
+
             return await _repository.GetAllAsync();
         }
 
@@ -22,16 +23,16 @@ namespace MinimalAPI.Services
         {
             return await _repository.GetByIdAsync(id);
         }
-        public async Task<ServiceResult<Contact>> CreateContactAsync(Contact contact)
+        public async Task<Result<Contact>> CreateContactAsync(Contact contact)
         {
             try
             {
                 var createdContact = await _repository.AddAsync(contact);
-                return ServiceResult<Contact>.Success(createdContact);
+                return Result.Ok(createdContact);
             }
             catch (Exception ex)
             {
-                return ServiceResult<Contact>.Failure("An error occurred while creating the contact.", new List<string> { ex.Message });
+                return Result.Fail(new Error("An error occurred while creating the contact.").CausedBy(ex.Message));
             }
         }
 

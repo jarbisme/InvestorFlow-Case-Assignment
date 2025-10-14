@@ -1,4 +1,5 @@
-﻿using MinimalAPI.Models;
+﻿using FluentResults;
+using MinimalAPI.Models;
 
 namespace MinimalAPI.Services
 {
@@ -6,7 +7,7 @@ namespace MinimalAPI.Services
     {
         Task<List<Contact>> GetAllContactsAsync();
         Task<Contact?> GetContactByIdAsync(int id);
-        Task<ServiceResult<Contact>> CreateContactAsync(Contact contact);
+        Task<Result<Contact>> CreateContactAsync(Contact contact);
         Task<Contact?> UpdateContactAsync(int id, Contact contact);
         Task<bool> DeleteContactAsync(int id);
 
