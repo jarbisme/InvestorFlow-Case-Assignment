@@ -13,16 +13,38 @@ namespace MinimalAPI.Services
             _repository = repository;
         }
 
-        public async Task<List<Contact>> GetAllContactsAsync()
+        public async Task<Result<List<Contact>>> GetAllContactsAsync()
         {
+            try
+            {
+                var contacts = await _repository.GetAllAsync();
+                return Result.Ok(contacts);
 
-            return await _repository.GetAllAsync();
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(new Error("An error occurred while retrieving contacts.").CausedBy(ex.Message));
+            }
         }
 
-        public async Task<Contact?> GetContactByIdAsync(int id)
+        public async Task<Result<Contact?>> GetContactByIdAsync(int id)
         {
-            return await _repository.GetByIdAsync(id);
+            try
+            {
+                var contact = await _repository.GetByIdAsync(id);
+                if (contact == null)
+                {
+                    return Result.Fail(new Error("Contact not found."));
+                }
+                return Result.Ok(contact);
+
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(new Error("An error occurred while retrieving the contact.").CausedBy(ex.Message));
+            }
         }
+
         public async Task<Result<Contact>> CreateContactAsync(Contact contact)
         {
             try
@@ -36,14 +58,37 @@ namespace MinimalAPI.Services
             }
         }
 
-        public async Task<Contact?> UpdateContactAsync(int id, Contact contact)
+        public async Task<Result<Contact?>> UpdateContactAsync(int id, Contact contact)
         {
-            return await _repository.UpdateAsync(contact);
+            try
+            {
+                var updatedContact = await _repository.UpdateAsync(contact);
+
+                if(updatedContact == null)
+                {
+                    return Result.Fail("Contact non found");
+                }
+
+                return Result.Ok(updatedContact);
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(new Error("An error occurred while updating the contact.").CausedBy(ex.Message));
+            }
         }
 
-        public async Task<bool> DeleteContactAsync(int id)
+        public async Task<Result<bool>> DeleteContactAsync(int id)
         {
-            return await _repository.DeleteAsync(id);
+            try
+            {
+                var result = await _repository.DeleteAsync(id);
+                return Result.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(new Error("An error occurred while deleting the contact.").CausedBy(ex.Message));
+            }
         }
     }
 }
+    

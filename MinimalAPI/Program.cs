@@ -25,6 +25,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
     dbContext.Database.EnsureCreated();
+    await ApplicationDbContext.SeedDataAsync(dbContext);
 }
 
 // Configure the HTTP request pipeline.

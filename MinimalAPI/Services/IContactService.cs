@@ -5,11 +5,11 @@ namespace MinimalAPI.Services
 {
     public interface IContactService
     {
-        Task<List<Contact>> GetAllContactsAsync();
-        Task<Contact?> GetContactByIdAsync(int id);
+        Task<Result<List<Contact>>> GetAllContactsAsync();
+        Task<Result<Contact?>> GetContactByIdAsync(int id);
         Task<Result<Contact>> CreateContactAsync(Contact contact);
-        Task<Contact?> UpdateContactAsync(int id, Contact contact);
-        Task<bool> DeleteContactAsync(int id);
+        Task<Result<Contact?>> UpdateContactAsync(int id, Contact contact);
+        Task<Result<bool>> DeleteContactAsync(int id);
 
     }
 }

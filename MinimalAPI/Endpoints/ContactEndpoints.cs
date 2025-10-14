@@ -45,19 +45,38 @@ namespace MinimalAPI.Endpoints
 
         private static async Task<IResult> GetAllContacts(IContactService contactService)
         {
-            List<Contact> contacts = await contactService.GetAllContactsAsync();
-            return Results.Ok(contacts);
+            var result = await contactService.GetAllContactsAsync();
+
+            if (result.IsFailed)
+            {
+                var errorResponse = ApiResponse<List<Contact>>.Error(
+                    result.Errors.FirstOrDefault()?.Message ?? "An error occurred while retrieving contacts.");
+                return Results.Json(errorResponse, statusCode: 500);
+            }
+
+
+            var apiResponse = ApiResponse<List<Contact>>.Success(result.Value!, "Contacts retrieved successfully.");
+            return Results.Ok(apiResponse);
         }
 
         private static async Task<IResult> GetContactById(int id, IContactService contactService)
         {
-            var contact = await contactService.GetContactByIdAsync(id);
-            return Results.Ok(contact);
+            var result = await contactService.GetContactByIdAsync(id);
+
+            if (result.IsFailed)
+            {
+                var errorResponse = ApiResponse<Contact>.Error(
+                    result.Errors.FirstOrDefault()?.Message ?? "An error occurred while retrieving the contact.");
+                return Results.Json(errorResponse, statusCode: 500);
+            }
+
+            var apiResponse = ApiResponse<Contact>.Success(result.Value!, "Contact retrieved successfully.");
+            return Results.Ok(apiResponse);
         }
 
         private static async Task<IResult> CreateContact(Contact contact, IContactService contactService)
         {
-            // TODO: Add validation logic here if needed
+            // TODO: Add request validation
 
             var result = await contactService.CreateContactAsync(contact);
 
@@ -90,25 +109,31 @@ namespace MinimalAPI.Endpoints
 
         private static async Task<IResult> UpdateContact(int id, Contact contact, IContactService contactService)
         {
-            if (id != contact.Id)
+            // TODO: Add request validation
+
+            var result = await contactService.UpdateContactAsync(id, contact);
+            if (result.IsFailed)
             {
-                return Results.BadRequest("Contact ID mismatch");
+                //TODO: Add logic to diffirenciate exception error from business logic error.
+                var errorResponse = ApiResponse<Contact>.Error(
+                    result.Errors.FirstOrDefault()?.Message ?? "An error occurred while updating the contact.");
+                return Results.Json(errorResponse, statusCode: 500);
             }
-            var updatedContact = await contactService.UpdateContactAsync(id, contact);
-            if (updatedContact == null)
-            {
-                return Results.NotFound();
-            }
-            return Results.Ok(updatedContact);
+
+            var apiResponse = ApiResponse<Contact>.Success(result.Value!, "Contact updated successfully.");
+            return Results.Ok(apiResponse);
         }
 
         private static async Task<IResult> DeleteContact(int id, IContactService contactService)
         {
-            var deleted = await contactService.DeleteContactAsync(id);
-            if (!deleted)
+            var result = await contactService.DeleteContactAsync(id);
+            if (result.IsFailed)
             {
-                return Results.NotFound();
+                var errorResponse = ApiResponse<Contact>.Error(
+                    result.Errors.FirstOrDefault()?.Message ?? "An error occurred while deleting the contact.");
+                return Results.Json(errorResponse, statusCode: 500);
             }
+
             return Results.NoContent();
         }
     }

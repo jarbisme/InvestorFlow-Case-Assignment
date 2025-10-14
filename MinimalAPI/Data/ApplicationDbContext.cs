@@ -9,18 +9,31 @@ namespace MinimalAPI.Data
 
         public DbSet<Contact> Contacts => Set<Contact>();
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        //protected override void OnModelCreating(ModelBuilder modelBuilder)
+        //{
+        //    base.OnModelCreating(modelBuilder);
+
+        //    var contacts = new[]
+        //    {
+        //        new Contact { Id = 1, Name = "Alice", Email = "alice@email.com", Phone = "8091234567" },
+        //        new Contact { Id = 2, Name = "Mario", Email = "mario@email.com", Phone = "8290983872" },
+        //        new Contact { Id = 3, Name = "Peach", Email = "peach@email.com", Phone = "8290713387" }
+        //    };
+
+        //    modelBuilder.Entity<Contact>().HasData(contacts);
+        //}
+
+        public static async Task SeedDataAsync(ApplicationDbContext context)
         {
-            base.OnModelCreating(modelBuilder);
-
-            var contacts = new[]
+            if (!await context.Contacts.AnyAsync())
             {
-                new Contact { Id = 1, Name = "Alice", Email = "alice@email.com", Phone = "8091234567" },
-                new Contact { Id = 2, Name = "Mario", Email = "mario@email.com", Phone = "8290983872" },
-                new Contact { Id = 3, Name = "Peach", Email = "peach@email.com", Phone = "8290713387" }
-            };
-
-            modelBuilder.Entity<Contact>().HasData(contacts);
+                await context.Contacts.AddRangeAsync(
+                    new Contact { Name = "John Doe", Email = "john@example.com", Phone = "555-0100" },
+                    new Contact { Name = "Jane Smith", Email = "jane@example.com", Phone = "555-0101" },
+                    new Contact { Name = "Bob Johnson", Email = "bob@example.com" }
+                );
+                await context.SaveChangesAsync();
+            }
         }
     }
 }

@@ -32,7 +32,7 @@ namespace MinimalAPI.Data
         public async Task<Contact?> UpdateAsync(Contact contact)
         {
             var existing = await _context.Contacts.FindAsync(contact.Id);
-            if (existing != null)
+            if (existing == null)
                 return null;
 
             _context.Entry(existing).CurrentValues.SetValues(contact);
