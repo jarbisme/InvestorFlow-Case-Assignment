@@ -56,8 +56,29 @@ namespace MinimalAPI.Endpoints
 
         private static async Task<IResult> CreateContact(Contact contact, IContactService contactService)
         {
-            var createdContact = await contactService.CreateContactAsync(contact);
-            return Results.Created($"/api/contacts/{createdContact.Id}", createdContact);
+            // TODO: Add validation logic here if needed
+
+            var result = await contactService.CreateContactAsync(contact);
+
+            if (!result.IsSuccess)
+            {
+                if(result.ValidationErrors.Any())
+                {
+                    var failResponse = ApiResponse<Contact>.Fail(
+                        "Validation errors occurred while creating the contact.",
+                        result.ValidationErrors);
+                    return Results.BadRequest(failResponse);
+                }
+
+                var errorResponse = ApiResponse<Contact>.Error(
+                    result.ErrorMessage ?? "An error ocurred");
+                return Results.Json(errorResponse, statusCode: 500);
+            }
+
+            var successResponse = ApiResponse<Contact>.Success(
+                result.Data!,
+                "Contact created successfully.");
+            return Results.Created($"/api/contacts/{result.Data!.Id}", successResponse);
         }
 
         private static async Task<IResult> UpdateContact(int id, Contact contact, IContactService contactService)

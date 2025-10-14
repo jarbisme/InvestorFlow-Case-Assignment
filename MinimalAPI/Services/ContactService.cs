@@ -22,9 +22,17 @@ namespace MinimalAPI.Services
         {
             return await _repository.GetByIdAsync(id);
         }
-        public async Task<Contact> CreateContactAsync(Contact contact)
+        public async Task<ServiceResult<Contact>> CreateContactAsync(Contact contact)
         {
-            return await _repository.AddAsync(contact);
+            try
+            {
+                var createdContact = await _repository.AddAsync(contact);
+                return ServiceResult<Contact>.Success(createdContact);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<Contact>.Failure("An error occurred while creating the contact.", new List<string> { ex.Message });
+            }
         }
 
         public async Task<Contact?> UpdateContactAsync(int id, Contact contact)
