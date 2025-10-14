@@ -18,23 +18,23 @@ namespace MinimalAPI.Services
             return await _repository.GetAllAsync();
         }
 
-        public Task<Contact?> GetContactByIdAsync(int id)
+        public async Task<Contact?> GetContactByIdAsync(int id)
         {
-            return _repository.GetByIdAsync(id);
+            return await _repository.GetByIdAsync(id);
         }
-        public Task<Contact> CreateContactAsync(Contact contact)
+        public async Task<Contact> CreateContactAsync(Contact contact)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<Contact?> UpdateContactAsync(int id, Contact contact)
-        {
-            throw new NotImplementedException();
+            return await _repository.AddAsync(contact);
         }
 
-        public Task<bool> DeleteContactAsync(int id)
+        public async Task<Contact?> UpdateContactAsync(int id, Contact contact)
         {
-            throw new NotImplementedException();
+            return await _repository.UpdateAsync(contact);
+        }
+
+        public async Task<bool> DeleteContactAsync(int id)
+        {
+            return await _repository.DeleteAsync(id);
         }
     }
 }
