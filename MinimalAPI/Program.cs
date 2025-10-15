@@ -17,6 +17,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
+builder.Services.AddScoped<ContactEndpointHandlers>();
 
 var app = builder.Build();
 
