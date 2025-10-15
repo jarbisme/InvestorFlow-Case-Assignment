@@ -2,6 +2,9 @@
 
 namespace MinimalAPI.Data
 {
+    /// <summary>
+    /// Interface defining CRUD operations for Fund entities and managing relationships with Contact entities.
+    /// </summary>
     public interface IFundRepository
     {
         Task<List<Fund>> GetAllAsync();

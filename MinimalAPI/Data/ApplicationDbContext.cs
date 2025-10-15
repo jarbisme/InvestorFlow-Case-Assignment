@@ -3,6 +3,9 @@ using MinimalAPI.Models;
 
 namespace MinimalAPI.Data
 {
+    /// <summary>
+    /// The database context for the application, managing Contact and Fund entities.
+    /// </summary> 
     public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions options) : base(options) { }
@@ -11,6 +14,9 @@ namespace MinimalAPI.Data
         public DbSet<Fund> Funds { get; set; }
 
 
+        /// <summary>
+        /// Seeds initial data into the database.
+        /// </summary>
         public static async Task SeedDataAsync(ApplicationDbContext context)
         {
             if (!await context.Contacts.AnyAsync())
@@ -19,7 +25,7 @@ namespace MinimalAPI.Data
                 var globalEquityFund = new Fund { Name = "Global Equity Fund" };
                 var bondFund = new Fund { Name = "Bond Fund" };
                 var emergingMarketsFund = new Fund { Name = "Emerging Markets Fund" };
-                
+
                 await context.Funds.AddRangeAsync(globalEquityFund, bondFund, emergingMarketsFund);
                 await context.SaveChangesAsync();
 

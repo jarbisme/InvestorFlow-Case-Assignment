@@ -5,6 +5,9 @@ using MinimalAPI.Services;
 
 namespace MinimalAPI.Endpoints
 {
+    /// <summary>
+    /// Handler class for Fund-related endpoint operations.
+    /// </summary>
     public class FundEndpointHandlers
     {
         private readonly IFundService _fundService;
@@ -16,6 +19,9 @@ namespace MinimalAPI.Endpoints
             _addContactValidator = addContactValidator;
         }
 
+        /// <summary>
+        /// Handler to get all funds.
+        /// </summary>
         public async Task<IResult> GetAllFunds()
         {
             var result = await _fundService.GetAllFundsAsync();
@@ -27,7 +33,8 @@ namespace MinimalAPI.Endpoints
             }
 
             // Create anonymous objects for each fund
-            var fundsDto = result.Value!.Select(fund => new {
+            var fundsDto = result.Value!.Select(fund => new
+            {
                 fund.Id,
                 fund.Name
             });
@@ -36,6 +43,10 @@ namespace MinimalAPI.Endpoints
             return Results.Ok(apiResponse);
         }
 
+        /// <summary>
+        /// Handler to get a fund by ID.
+        /// </summary>
+        /// <param name="id">The unique identifier of the fund</param>
         public async Task<IResult> GetFundById(int id)
         {
             var result = await _fundService.GetFundByIdAsync(id);
@@ -51,7 +62,8 @@ namespace MinimalAPI.Endpoints
             {
                 result.Value!.Id,
                 result.Value.Name,
-                Contacts = result.Value.Contacts.Select(c => new {
+                Contacts = result.Value.Contacts.Select(c => new
+                {
                     c.Id,
                     c.Name,
                     c.Email,
@@ -64,6 +76,11 @@ namespace MinimalAPI.Endpoints
             return Results.Ok(apiResponse);
         }
 
+        /// <summary>
+        /// Handler to add a contact to a fund.
+        /// </summary>
+        /// <param name="fundId">The ID of the fund</param>
+        /// <param name="request">The request containing the contact ID to add</param>
         public async Task<IResult> AddContactToFund(int fundId, AddContactToFundRequest request)
         {
             // Validate request
@@ -87,6 +104,11 @@ namespace MinimalAPI.Endpoints
             return Results.Ok(successResponse);
         }
 
+        /// <summary>
+        /// Handler to remove a contact from a fund.
+        /// </summary>
+        /// <param name="fundId">The ID of the fund</param>
+        /// <param name="contactId">The ID of the contact to remove</param>
         public async Task<IResult> RemoveContactFromFund(int fundId, int contactId)
         {
             var result = await _fundService.RemoveContactFromFundAsync(fundId, contactId);

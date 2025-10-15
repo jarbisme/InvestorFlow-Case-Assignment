@@ -6,6 +6,9 @@ using MinimalAPI.Validators;
 
 namespace MinimalAPI.Endpoints
 {
+    /// <summary>
+    /// Handler class for Contact-related endpoint operations.
+    /// </summary>
     public class ContactEndpointHandlers
     {
         private readonly IContactService _contactService;
@@ -22,7 +25,10 @@ namespace MinimalAPI.Endpoints
             _updateValidator = updateValidator;
         }
 
-         
+        /// <summary>
+        /// Handler to get all contacts.
+        /// </summary>
+        /// <returns></returns>
         public async Task<IResult> GetAllContacts()
         {
             var result = await _contactService.GetAllContactsAsync();
@@ -38,6 +44,10 @@ namespace MinimalAPI.Endpoints
             return Results.Ok(apiResponse);
         }
 
+        /// <summary>
+        /// Handler to get a contact by ID.
+        /// </summary>
+        /// <param name="id">The unique identifier of the contact</param>
         public async Task<IResult> GetContactById(int id)
         {
             var result = await _contactService.GetContactByIdAsync(id);
@@ -53,6 +63,10 @@ namespace MinimalAPI.Endpoints
             return Results.Ok(apiResponse);
         }
 
+        /// <summary>
+        /// Handler to create a new contact.
+        /// </summary>
+        /// <param name="request">The request containing contact information</param>
         public async Task<IResult> CreateContact(CreateContactRequest request)
         {
             // Validate request
@@ -100,6 +114,11 @@ namespace MinimalAPI.Endpoints
             return Results.Created($"/api/contacts/{result.Value!.Id}", successResponse);
         }
 
+        /// <summary>
+        /// Handler to update an existing contact.
+        /// </summary>
+        /// <param name="id">The ID of the contact to update</param>
+        /// <param name="request">The request containing updated contact information</param>
         public async Task<IResult> UpdateContact(int id, UpdateContactRequest request)
         {
             // Validate request
@@ -132,6 +151,10 @@ namespace MinimalAPI.Endpoints
             return Results.Ok(apiResponse);
         }
 
+        /// <summary>
+        /// Handler to delete a contact by ID.
+        /// </summary>
+        /// <param name="id">The unique identifier of the contact to delete</param>
         public async Task<IResult> DeleteContact(int id)
         {
             var result = await _contactService.DeleteContactAsync(id);

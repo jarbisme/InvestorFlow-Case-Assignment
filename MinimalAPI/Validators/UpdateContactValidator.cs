@@ -3,6 +3,9 @@ using MinimalAPI.Models.DTOs;
 
 namespace MinimalAPI.Validators
 {
+    /// <summary>
+    /// Validator for UpdateContactRequest to ensure required fields are valid.
+    /// </summary>
     public class UpdateContactValidator : AbstractValidator<UpdateContactRequest>
     {
         public UpdateContactValidator()

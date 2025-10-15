@@ -3,6 +3,9 @@ using MinimalAPI.Models.DTOs;
 
 namespace MinimalAPI.Validators
 {
+    /// <summary>
+    /// Validator for AddContactToFundRequest to ensure ContactId is valid.
+    /// </summary>
     public class AddContactToFundValidator : AbstractValidator<AddContactToFundRequest>
     {
         public AddContactToFundValidator()

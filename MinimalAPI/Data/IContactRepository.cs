@@ -2,6 +2,9 @@
 
 namespace MinimalAPI.Data
 {
+    /// <summary>
+    /// Interface defining CRUD operations for Contact entities.
+    /// </summary>
     public interface IContactRepository
     {
         Task<List<Contact>> GetAllAsync();

@@ -3,6 +3,9 @@ using MinimalAPI.Models;
 
 namespace MinimalAPI.Services
 {
+    /// <summary>
+    /// Interface defining business logic operations for Contact entities.
+    /// </summary>
     public interface IContactService
     {
         Task<Result<List<Contact>>> GetAllContactsAsync();

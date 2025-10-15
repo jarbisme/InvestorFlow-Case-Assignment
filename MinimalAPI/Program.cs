@@ -13,7 +13,8 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => {
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
     options.UseInMemoryDatabase("InMemoryDb");
 });
 
@@ -44,7 +45,7 @@ if (app.Environment.IsDevelopment())
 // Ensure database is created
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     dbContext.Database.EnsureCreated();
     await ApplicationDbContext.SeedDataAsync(dbContext);
 }

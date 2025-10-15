@@ -4,6 +4,9 @@ using MinimalAPI.Models;
 
 namespace MinimalAPI.Services
 {
+    /// <summary>
+    /// Business logic layer for Fund operations. Validates rules and orchestrates data access.
+    /// </summary>
     public class FundService : IFundService
     {
         private readonly IFundRepository _fundRepository;
@@ -15,6 +18,10 @@ namespace MinimalAPI.Services
             _contactRepository = contactRepository;
         }
 
+        /// <summary>
+        /// Retrieves all funds.
+        /// </summary>
+        /// <returns>A list of funds</returns>
         public async Task<Result<List<Fund>>> GetAllFundsAsync()
         {
             try
@@ -28,6 +35,11 @@ namespace MinimalAPI.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves a fund by its ID with its contacts.
+        /// </summary>
+        /// <param name="id">The unique identifier of the fund</param>
+        /// <returns>The fund if found, otherwise an error</returns>
         public async Task<Result<Fund?>> GetFundByIdAsync(int id)
         {
             try
@@ -37,7 +49,7 @@ namespace MinimalAPI.Services
                 {
                     return Result.Fail(new Error("Fund not found."));
                 }
-                return Result.Ok(fund);
+                return Result.Ok<Fund?>(fund);
             }
             catch (Exception ex)
             {
@@ -45,6 +57,12 @@ namespace MinimalAPI.Services
             }
         }
 
+        /// <summary>
+        /// Adds an existing contact to a fund.
+        /// </summary>
+        /// <param name="fundId">The ID of the fund</param>
+        /// <param name="contactId">The ID of the contact</param>
+        /// <returns>True if the contact was added, otherwise false</returns>
         public async Task<Result<bool>> AddContactToFundAsync(int fundId, int contactId)
         {
             try
@@ -90,6 +108,12 @@ namespace MinimalAPI.Services
             }
         }
 
+        /// <summary>
+        /// Removes a contact from a fund.
+        /// </summary>
+        /// <param name="fundId">The ID of the fund</param>
+        /// <param name="contactId">The ID of the contact</param>
+        /// <returns>True if the contact was removed, otherwise false</returns>
         public async Task<Result<bool>> RemoveContactFromFundAsync(int fundId, int contactId)
         {
             try

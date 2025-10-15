@@ -3,6 +3,9 @@ using MinimalAPI.Models.DTOs;
 
 namespace MinimalAPI.Endpoints
 {
+    /// <summary>
+    /// Extension method to map Fund-related endpoints to the IEndpointRouteBuilder.
+    /// </summary>
     public static class FundEndpoints
     {
         public static void MapFundEndpoints(this IEndpointRouteBuilder endpoints)

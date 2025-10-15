@@ -4,6 +4,9 @@ using MinimalAPI.Services;
 
 namespace MinimalAPI.Endpoints
 {
+    /// <summary>
+    /// Extension method to map Contact-related endpoints to the IEndpointRouteBuilder.
+    /// </summary>
     public static class ContactEndpoints
     {
         public static void MapContactEndpoints(this IEndpointRouteBuilder endpoints)
