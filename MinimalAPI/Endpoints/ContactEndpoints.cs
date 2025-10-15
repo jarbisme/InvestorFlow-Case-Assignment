@@ -8,11 +8,11 @@ namespace MinimalAPI.Endpoints
     {
         public static void MapContactEndpoints(this IEndpointRouteBuilder endpoints)
         {
-            var contactsGroups = endpoints.MapGroup("/api/contacts")
+            var contactsGroup = endpoints.MapGroup("/api/contacts")
                 .WithTags("Contacts");
 
-            // Use this pattern for all endpoints
-            contactsGroups.MapGet("/", (IServiceProvider sp) =>
+
+            contactsGroup.MapGet("/", (IServiceProvider sp) =>
                 sp.GetRequiredService<ContactEndpointHandlers>().GetAllContacts())
                 .WithName("GetContacts")
                 .WithSummary("Get all contacts")
@@ -20,7 +20,7 @@ namespace MinimalAPI.Endpoints
                 .Produces<ApiResponse<List<Contact>>>(StatusCodes.Status200OK)
                 .WithOpenApi();
 
-            contactsGroups.MapGet("/{id}", (IServiceProvider sp, int id) =>
+            contactsGroup.MapGet("/{id}", (IServiceProvider sp, int id) =>
                 sp.GetRequiredService<ContactEndpointHandlers>().GetContactById(id))
                 .WithName("GetContactById")
                 .WithSummary("Get contact by Id")
@@ -32,7 +32,7 @@ namespace MinimalAPI.Endpoints
                     return operation;
                 });
 
-            contactsGroups.MapPost("/", (IServiceProvider sp, CreateContactRequest request) =>
+            contactsGroup.MapPost("/", (IServiceProvider sp, CreateContactRequest request) =>
                 sp.GetRequiredService<ContactEndpointHandlers>().CreateContact(request))
                 .WithName("CreateContact")
                 .WithSummary("Create a new contact")
@@ -40,7 +40,7 @@ namespace MinimalAPI.Endpoints
                 .Produces<ApiResponse<Contact>>(StatusCodes.Status201Created)
                 .WithOpenApi();
 
-            contactsGroups.MapPut("/{id}", (IServiceProvider sp, int id, UpdateContactRequest request) =>
+            contactsGroup.MapPut("/{id}", (IServiceProvider sp, int id, UpdateContactRequest request) =>
                 sp.GetRequiredService<ContactEndpointHandlers>().UpdateContact(id, request))
                 .WithName("UpdateContact")
                 .WithSummary("Update an existing contact")
@@ -52,7 +52,7 @@ namespace MinimalAPI.Endpoints
                     return operation;
                 });
 
-            contactsGroups.MapDelete("/{id}", (IServiceProvider sp, int id) =>
+            contactsGroup.MapDelete("/{id}", (IServiceProvider sp, int id) =>
                 sp.GetRequiredService<ContactEndpointHandlers>().DeleteContact(id))
                 .WithName("DeleteContact")
                 .WithSummary("Delete a contact")

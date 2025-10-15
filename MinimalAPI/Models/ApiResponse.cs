@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MinimalAPI.Models
 {
@@ -46,6 +47,46 @@ namespace MinimalAPI.Models
         public static ApiResponse<T> Error(string message, List<string>? errors = null)
         {
             return new ApiResponse<T>
+            {
+                Status = ApiResponseStatus.Error,
+                Message = message,
+                Errors = errors ?? new List<string>()
+            };
+        }
+    }
+
+    /// <summary>
+    /// Represents an empty response payload
+    /// </summary>
+    public class EmptyResponse
+    {
+    }
+
+    public static class ApiResponse
+    {
+        public static ApiResponse<EmptyResponse> SuccessNoData(string? message = null)
+        {
+            return new ApiResponse<EmptyResponse>
+            {
+                Status = ApiResponseStatus.Success,
+                Data = new EmptyResponse(),
+                Message = message
+            };
+        }
+        
+        public static ApiResponse<EmptyResponse> Fail(string message, List<string>? errors = null)
+        {
+            return new ApiResponse<EmptyResponse>
+            {
+                Status = ApiResponseStatus.Fail,
+                Message = message,
+                Errors = errors ?? new List<string>()
+            };
+        }
+        
+        public static ApiResponse<EmptyResponse> Error(string message, List<string>? errors = null)
+        {
+            return new ApiResponse<EmptyResponse>
             {
                 Status = ApiResponseStatus.Error,
                 Message = message,

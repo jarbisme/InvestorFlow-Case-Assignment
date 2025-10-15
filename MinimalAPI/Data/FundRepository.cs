@@ -19,11 +19,6 @@ namespace MinimalAPI.Data
 
         public async Task<Fund?> GetByIdAsync(int id)
         {
-            return await _context.Funds.FindAsync(id);
-        }
-
-        public async Task<Fund?> GetByIdWithContactsAsync(int id)
-        {
             return await _context.Funds
                 .Include(f => f.Contacts)
                 .FirstOrDefaultAsync(f => f.Id == id);
@@ -86,10 +81,10 @@ namespace MinimalAPI.Data
             return fund?.Contacts.ToList() ?? new List<Contact>();
         }
 
-        public async Task<bool> IsContactInFundAsync(int contactId)
-        {
-            var contact = await _context.Contacts.FindAsync(contactId);
-            return contact != null && contact.FundId.HasValue;
-        }
+        //public async Task<bool> IsContactInFundAsync(int contactId)
+        //{
+        //    var contact = await _context.Contacts.FindAsync(contactId);
+        //    return contact != null && contact.FundId.HasValue;
+        //}
     }
 }

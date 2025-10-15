@@ -1,6 +1,7 @@
 using Azure;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using MinimalAPI.Data;
 using MinimalAPI.Endpoints;
@@ -22,10 +23,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IContactService, ContactService>();
+builder.Services.AddScoped<IFundService, FundService>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
+builder.Services.AddScoped<IFundRepository, FundRepository>();
 builder.Services.AddScoped<ContactEndpointHandlers>();
+builder.Services.AddScoped<FundEndpointHandlers>();
 builder.Services.AddScoped<IValidator<CreateContactRequest>, CreateContactValidator>();
 builder.Services.AddScoped<IValidator<UpdateContactRequest>, UpdateContactValidator>();
+builder.Services.AddScoped<IValidator<AddContactToFundRequest>, AddContactToFundValidator>();
 
 var app = builder.Build();
 
@@ -48,6 +53,7 @@ app.UseHttpsRedirection();
 
 // Map enpoints from separate class
 app.MapContactEndpoints();
+app.MapFundEndpoints();
 
 
 // Global exception handling
