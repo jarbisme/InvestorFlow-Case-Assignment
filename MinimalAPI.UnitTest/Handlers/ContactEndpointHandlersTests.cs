@@ -9,7 +9,7 @@ using Moq;
 using System.Reflection;
 using Xunit;
 
-namespace MinimalAPI.UnitTest.Endpoints
+namespace MinimalAPI.UnitTest.Handlers
 {
     public class ContactEndpointHandlersTests
     {
