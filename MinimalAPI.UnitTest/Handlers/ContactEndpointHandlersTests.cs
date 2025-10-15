@@ -1,10 +1,13 @@
 using FluentAssertions;
 using FluentResults;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using MinimalAPI.Endpoints;
 using MinimalAPI.Models;
+using MinimalAPI.Models.DTOs;
 using MinimalAPI.Services;
+using MinimalAPI.Validators;
 using Moq;
 using System.Reflection;
 using Xunit;
@@ -137,7 +140,7 @@ namespace MinimalAPI.UnitTest.Handlers
         public async Task CreateContact_ReturnsCreated_WhenContactIsValid()
         {
             // Arrange
-            var newContact = new Contact
+            var createRequest = new CreateContactRequest
             {
                 Name = "John Doe",
                 Email = "john@example.com",
@@ -147,16 +150,26 @@ namespace MinimalAPI.UnitTest.Handlers
             var createdContact = new Contact
             {
                 Id = 1,
-                Name = newContact.Name,
-                Email = newContact.Email,
-                Phone = newContact.Phone
+                Name = createRequest.Name,
+                Email = createRequest.Email,
+                Phone = createRequest.Phone
             };
 
-            _contactServiceMock.Setup(s => s.CreateContactAsync(newContact))
+            // Mock validator to pass validation
+            var validatorMock = new Mock<IValidator<CreateContactRequest>>();
+            var validationResult = new FluentValidation.Results.ValidationResult();
+            validatorMock.Setup(v => v.ValidateAsync(createRequest, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(validationResult);
+
+            // Setup service to return success
+            _contactServiceMock.Setup(s => s.CreateContactAsync(It.Is<Contact>(c => 
+                c.Name == createRequest.Name && 
+                c.Email == createRequest.Email && 
+                c.Phone == createRequest.Phone)))
                 .ReturnsAsync(Result.Ok(createdContact));
 
             // Act
-            var result = await _handlers.CreateContact(newContact, _contactServiceMock.Object);
+            var result = await _handlers.CreateContact(createRequest, _contactServiceMock.Object, validatorMock.Object);
 
             // Assert
             var createdResult = Assert.IsType<Created<ApiResponse<Contact>>>(result);
@@ -167,50 +180,56 @@ namespace MinimalAPI.UnitTest.Handlers
             response.Message.Should().Be("Contact created successfully.");
             response.Data.Should().NotBeNull();
             response.Data.Id.Should().Be(1);
-            response.Data.Name.Should().Be(newContact.Name);
+            response.Data.Name.Should().Be(createRequest.Name);
         }
 
         [Fact]
         public async Task CreateContact_ReturnsBadRequest_WhenValidationFails()
         {
             // Arrange
-            var invalidContact = new Contact { Name = "" };
+            var invalidRequest = new CreateContactRequest { Name = "" };
 
-            var errors = new List<Error>
-            {
-                new Error("Name is required").WithMetadata("ValidationError", true),
-                new Error("Email format is invalid")
-            };
-
-            _contactServiceMock.Setup(s => s.CreateContactAsync(invalidContact))
-                .ReturnsAsync(Result.Fail(errors));
+            // Mock validator to fail validation
+            var validatorMock = new Mock<IValidator<CreateContactRequest>>();
+            var validationResult = new FluentValidation.Results.ValidationResult();
+            validationResult.Errors.Add(new FluentValidation.Results.ValidationFailure("Name", "Name is required"));
+            validatorMock.Setup(v => v.ValidateAsync(invalidRequest, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(validationResult);
 
             // Act
-            var result = await _handlers.CreateContact(invalidContact, _contactServiceMock.Object);
+            var result = await _handlers.CreateContact(invalidRequest, _contactServiceMock.Object, validatorMock.Object);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequest<ApiResponse<Contact>>>(result);
             var response = badRequestResult.Value;
             
             response.Status.Should().Be(ApiResponseStatus.Fail);
-            response.Message.Should().Be("Validation errors occurred while creating the contact.");
-            response.Errors.Should().HaveCount(2);
+            response.Message.Should().Be("Validation failed");
+            response.Errors.Should().HaveCount(1);
             response.Errors.Should().Contain("Name is required");
-            response.Errors.Should().Contain("Email format is invalid");
+            
+            // Verify service was never called
+            _contactServiceMock.Verify(s => s.CreateContactAsync(It.IsAny<Contact>()), Times.Never);
         }
 
         [Fact]
         public async Task CreateContact_ReturnsServerError_WhenServiceFails()
         {
             // Arrange
-            var contact = new Contact { Name = "John Doe" };
+            var request = new CreateContactRequest { Name = "John Doe" };
             var errorMessage = "Database connection failed";
             
-            _contactServiceMock.Setup(s => s.CreateContactAsync(contact))
+            // Mock validator to pass validation
+            var validatorMock = new Mock<IValidator<CreateContactRequest>>();
+            var validationResult = new FluentValidation.Results.ValidationResult();
+            validatorMock.Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(validationResult);
+    
+            _contactServiceMock.Setup(s => s.CreateContactAsync(It.IsAny<Contact>()))
                 .ReturnsAsync(Result.Fail(errorMessage));
 
             // Act
-            var result = await _handlers.CreateContact(contact, _contactServiceMock.Object);
+            var result = await _handlers.CreateContact(request, _contactServiceMock.Object, validatorMock.Object);
 
             // Assert
             var jsonResult = GetJsonResultFromIResult<ApiResponse<Contact>>(result);

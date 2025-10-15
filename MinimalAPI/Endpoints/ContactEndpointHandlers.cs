@@ -1,13 +1,31 @@
+using FluentValidation;
 using MinimalAPI.Models;
+using MinimalAPI.Models.DTOs;
 using MinimalAPI.Services;
+using MinimalAPI.Validators;
 
 namespace MinimalAPI.Endpoints
 {
     public class ContactEndpointHandlers
     {
-        public async Task<IResult> GetAllContacts(IContactService contactService)
+        private readonly IContactService _contactService;
+        private readonly IValidator<CreateContactRequest> _createValidator;
+        private readonly IValidator<UpdateContactRequest> _updateValidator;
+
+        public ContactEndpointHandlers(
+            IContactService contactService,
+            IValidator<CreateContactRequest> createValidator,
+            IValidator<UpdateContactRequest> updateValidator)
         {
-            var result = await contactService.GetAllContactsAsync();
+            _contactService = contactService;
+            _createValidator = createValidator;
+            _updateValidator = updateValidator;
+        }
+
+         
+        public async Task<IResult> GetAllContacts()
+        {
+            var result = await _contactService.GetAllContactsAsync();
 
             if (result.IsFailed)
             {
@@ -20,9 +38,9 @@ namespace MinimalAPI.Endpoints
             return Results.Ok(apiResponse);
         }
 
-        public async Task<IResult> GetContactById(int id, IContactService contactService)
+        public async Task<IResult> GetContactById(int id)
         {
-            var result = await contactService.GetContactByIdAsync(id);
+            var result = await _contactService.GetContactByIdAsync(id);
 
             if (result.IsFailed)
             {
@@ -35,11 +53,26 @@ namespace MinimalAPI.Endpoints
             return Results.Ok(apiResponse);
         }
 
-        public async Task<IResult> CreateContact(Contact contact, IContactService contactService)
+        public async Task<IResult> CreateContact(CreateContactRequest request)
         {
-            // TODO: Add request validation
+            // Validate request
+            var validationResult = await _createValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                var failResponse = ApiResponse<Contact>.Fail("Validation failed", errors);
+                return Results.BadRequest(failResponse);
+            }
 
-            var result = await contactService.CreateContactAsync(contact);
+            // Map DTO to entity (ignoring Id)
+            var contact = new Contact
+            {
+                Name = request.Name,
+                Email = request.Email,
+                Phone = request.Phone
+            };
+
+            var result = await _contactService.CreateContactAsync(contact);
 
             if (result.IsFailed)
             {
@@ -67,11 +100,27 @@ namespace MinimalAPI.Endpoints
             return Results.Created($"/api/contacts/{result.Value!.Id}", successResponse);
         }
 
-        public async Task<IResult> UpdateContact(int id, Contact contact, IContactService contactService)
+        public async Task<IResult> UpdateContact(int id, UpdateContactRequest request)
         {
-            // TODO: Add request validation
+            // Validate request
+            var validationResult = await _updateValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                var failResponse = ApiResponse<Contact>.Fail("Validation failed", errors);
+                return Results.BadRequest(failResponse);
+            }
 
-            var result = await contactService.UpdateContactAsync(id, contact);
+            // Map DTO to entity for update
+            var contact = new Contact
+            {
+                Id = id, // Include the ID from the route parameter
+                Name = request.Name,
+                Email = request.Email,
+                Phone = request.Phone
+            };
+
+            var result = await _contactService.UpdateContactAsync(id, contact);
             if (result.IsFailed)
             {
                 var errorResponse = ApiResponse<Contact>.Error(
@@ -83,9 +132,9 @@ namespace MinimalAPI.Endpoints
             return Results.Ok(apiResponse);
         }
 
-        public async Task<IResult> DeleteContact(int id, IContactService contactService)
+        public async Task<IResult> DeleteContact(int id)
         {
-            var result = await contactService.DeleteContactAsync(id);
+            var result = await _contactService.DeleteContactAsync(id);
             if (result.IsFailed)
             {
                 var errorResponse = ApiResponse<Contact>.Error(

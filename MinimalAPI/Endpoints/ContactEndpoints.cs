@@ -1,4 +1,5 @@
 ﻿using MinimalAPI.Models;
+using MinimalAPI.Models.DTOs;
 using MinimalAPI.Services;
 
 namespace MinimalAPI.Endpoints
@@ -7,20 +8,20 @@ namespace MinimalAPI.Endpoints
     {
         public static void MapContactEndpoints(this IEndpointRouteBuilder endpoints)
         {
-            // Get the handlers from the DI container
-            var handlers = endpoints.ServiceProvider.GetRequiredService<ContactEndpointHandlers>();
-
             var contactsGroups = endpoints.MapGroup("/api/contacts")
                 .WithTags("Contacts");
 
-            contactsGroups.MapGet("/", handlers.GetAllContacts)
+            // Use this pattern for all endpoints
+            contactsGroups.MapGet("/", (IServiceProvider sp) =>
+                sp.GetRequiredService<ContactEndpointHandlers>().GetAllContacts())
                 .WithName("GetContacts")
                 .WithSummary("Get all contacts")
                 .WithDescription("Retrieves a list of all contacts from the database")
                 .Produces<ApiResponse<List<Contact>>>(StatusCodes.Status200OK)
                 .WithOpenApi();
 
-            contactsGroups.MapGet("/{id}", handlers.GetContactById)
+            contactsGroups.MapGet("/{id}", (IServiceProvider sp, int id) =>
+                sp.GetRequiredService<ContactEndpointHandlers>().GetContactById(id))
                 .WithName("GetContactById")
                 .WithSummary("Get contact by Id")
                 .WithDescription("Retrieves a single contact by its unique identifier")
@@ -31,14 +32,16 @@ namespace MinimalAPI.Endpoints
                     return operation;
                 });
 
-            contactsGroups.MapPost("/", handlers.CreateContact)
+            contactsGroups.MapPost("/", (IServiceProvider sp, CreateContactRequest request) =>
+                sp.GetRequiredService<ContactEndpointHandlers>().CreateContact(request))
                 .WithName("CreateContact")
                 .WithSummary("Create a new contact")
                 .WithDescription("Creates a new contact with the provided information. Returns the created contact with its assigned Id.")
                 .Produces<ApiResponse<Contact>>(StatusCodes.Status201Created)
                 .WithOpenApi();
 
-            contactsGroups.MapPut("/{id}", handlers.UpdateContact)
+            contactsGroups.MapPut("/{id}", (IServiceProvider sp, int id, UpdateContactRequest request) =>
+                sp.GetRequiredService<ContactEndpointHandlers>().UpdateContact(id, request))
                 .WithName("UpdateContact")
                 .WithSummary("Update an existing contact")
                 .WithDescription("Updates the details of an existing contact by its Id. All fields will be replaced with the provided values.")
@@ -49,7 +52,8 @@ namespace MinimalAPI.Endpoints
                     return operation;
                 });
 
-            contactsGroups.MapDelete("/{id}", handlers.DeleteContact)
+            contactsGroups.MapDelete("/{id}", (IServiceProvider sp, int id) =>
+                sp.GetRequiredService<ContactEndpointHandlers>().DeleteContact(id))
                 .WithName("DeleteContact")
                 .WithSummary("Delete a contact")
                 .WithDescription("Permanently deletes a contact by its Id. This action cannot be undone.")

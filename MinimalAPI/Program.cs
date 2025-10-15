@@ -1,8 +1,11 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using MinimalAPI.Data;
 using MinimalAPI.Endpoints;
 using MinimalAPI.Models;
+using MinimalAPI.Models.DTOs;
 using MinimalAPI.Services;
+using MinimalAPI.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +21,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 builder.Services.AddScoped<ContactEndpointHandlers>();
+builder.Services.AddScoped<IValidator<CreateContactRequest>, CreateContactValidator>();
+builder.Services.AddScoped<IValidator<UpdateContactRequest>, UpdateContactValidator>();
 
 var app = builder.Build();
 
