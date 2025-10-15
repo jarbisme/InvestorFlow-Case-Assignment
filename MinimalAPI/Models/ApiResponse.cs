@@ -1,9 +1,18 @@
-﻿namespace MinimalAPI.Models
+﻿using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
+
+namespace MinimalAPI.Models
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum ApiResponseStatus
     {
+        [EnumMember(Value = "success")]
         Success,
+        
+        [EnumMember(Value = "fail")]
         Fail,
+        
+        [EnumMember(Value = "error")]
         Error,
     }
 

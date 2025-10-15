@@ -1,4 +1,6 @@
+using Azure;
 using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using MinimalAPI.Data;
 using MinimalAPI.Endpoints;
@@ -6,6 +8,7 @@ using MinimalAPI.Models;
 using MinimalAPI.Models.DTOs;
 using MinimalAPI.Services;
 using MinimalAPI.Validators;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +29,13 @@ builder.Services.AddScoped<IValidator<UpdateContactRequest>, UpdateContactValida
 
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 // Ensure database is created
 using (var scope = app.Services.CreateScope())
 {
@@ -34,18 +44,43 @@ using (var scope = app.Services.CreateScope())
     await ApplicationDbContext.SeedDataAsync(dbContext);
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
 app.UseHttpsRedirection();
-
 
 // Map enpoints from separate class
 app.MapContactEndpoints();
+
+
+// Global exception handling
+app.UseExceptionHandler(exceptionHandlerApp =>
+{
+    exceptionHandlerApp.Run(async context =>
+    {
+        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+        context.Response.ContentType = "application/json";
+
+        ApiResponse<object> response;
+
+        if (exception is BadHttpRequestException badRequestException &&
+            badRequestException.InnerException is JsonException jsonException)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            response = ApiResponse<object>.Fail(
+                "Invalid JSON format",
+                new List<string> { $"The request contains malformed JSON: {jsonException.Message}" }
+            );
+        }
+        else
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            response = ApiResponse<object>.Error(
+                "An error occurred while processing your request",
+                new List<string> { exception?.Message ?? "Unknown error" }
+            );
+        }
+
+        await context.Response.WriteAsJsonAsync(response);
+    });
+});
 
 app.Run();
 
