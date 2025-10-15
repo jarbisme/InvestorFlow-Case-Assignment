@@ -3,15 +3,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MinimalAPI.Models
 {
-    public class Contact
+    public class Fund
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public string? Email { get; set; }
-        public string? Phone { get; set; }
-        public int? FundId { get; set; }
-        public Fund? Fund { get; set; }   
+        public List<Contact> Contacts { get; set; } = new();
     }
 }

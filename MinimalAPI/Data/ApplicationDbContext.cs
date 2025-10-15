@@ -7,21 +7,9 @@ namespace MinimalAPI.Data
     {
         public ApplicationDbContext(DbContextOptions options) : base(options) { }
 
-        public DbSet<Contact> Contacts => Set<Contact>();
+        public DbSet<Contact> Contacts { get; set; }
+        public DbSet<Fund> Funds { get; set; }
 
-        //protected override void OnModelCreating(ModelBuilder modelBuilder)
-        //{
-        //    base.OnModelCreating(modelBuilder);
-
-        //    var contacts = new[]
-        //    {
-        //        new Contact { Id = 1, Name = "Alice", Email = "alice@email.com", Phone = "8091234567" },
-        //        new Contact { Id = 2, Name = "Mario", Email = "mario@email.com", Phone = "8290983872" },
-        //        new Contact { Id = 3, Name = "Peach", Email = "peach@email.com", Phone = "8290713387" }
-        //    };
-
-        //    modelBuilder.Entity<Contact>().HasData(contacts);
-        //}
 
         public static async Task SeedDataAsync(ApplicationDbContext context)
         {
