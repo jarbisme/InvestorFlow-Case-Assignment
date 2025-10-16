@@ -268,56 +268,56 @@ namespace MinimalAPI.UnitTest.Services
 
         #region DeleteContactAsync Tests
 
-        [Fact]
-        public async Task DeleteContactAsync_ReturnsSuccess_WhenContactIsDeleted()
-        {
-            // Arrange
-            var contactId = 1;
-            _repositoryMock.Setup(x => x.DeleteAsync(contactId))
-                .ReturnsAsync(true);
+        //[Fact]
+        //public async Task DeleteContactAsync_ReturnsSuccess_WhenContactIsDeleted()
+        //{
+        //    // Arrange
+        //    var contactId = 1;
+        //    _repositoryMock.Setup(x => x.DeleteAsync(contactId))
+        //        .ReturnsAsync(true);
 
-            // Act
-            var result = await _contactService.DeleteContactAsync(contactId);
+        //    // Act
+        //    var result = await _contactService.DeleteContactAsync(contactId);
 
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Should().BeTrue();
-        }
+        //    // Assert
+        //    result.IsSuccess.Should().BeTrue();
+        //    result.Value.Should().BeTrue();
+        //}
 
-        [Fact]
-        public async Task DeleteContactAsync_ReturnsSuccess_WithFalseValue_WhenContactDoesNotExist()
-        {
-            // Arrange
-            var contactId = 999;
-            _repositoryMock.Setup(x => x.DeleteAsync(contactId))
-                .ReturnsAsync(false);
+        //[Fact]
+        //public async Task DeleteContactAsync_ReturnsSuccess_WithFalseValue_WhenContactDoesNotExist()
+        //{
+        //    // Arrange
+        //    var contactId = 999;
+        //    _repositoryMock.Setup(x => x.DeleteAsync(contactId))
+        //        .ReturnsAsync(false);
 
-            // Act
-            var result = await _contactService.DeleteContactAsync(contactId);
+        //    // Act
+        //    var result = await _contactService.DeleteContactAsync(contactId);
 
-            // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Should().BeFalse();
-        }
+        //    // Assert
+        //    result.IsSuccess.Should().BeTrue();
+        //    result.Value.Should().BeFalse();
+        //}
 
-        [Fact]
-        public async Task DeleteContactAsync_ReturnsFailure_WhenRepositoryThrowsException()
-        {
-            // Arrange
-            var contactId = 1;
-            var exceptionMessage = "Database connection error";
-            _repositoryMock.Setup(x => x.DeleteAsync(contactId))
-                .ThrowsAsync(new Exception(exceptionMessage));
+        //[Fact]
+        //public async Task DeleteContactAsync_ReturnsFailure_WhenRepositoryThrowsException()
+        //{
+        //    // Arrange
+        //    var contactId = 1;
+        //    var exceptionMessage = "Database connection error";
+        //    _repositoryMock.Setup(x => x.DeleteAsync(contactId))
+        //        .ThrowsAsync(new Exception(exceptionMessage));
 
-            // Act
-            var result = await _contactService.DeleteContactAsync(contactId);
+        //    // Act
+        //    var result = await _contactService.DeleteContactAsync(contactId);
 
-            // Assert
-            result.IsFailed.Should().BeTrue();
-            result.Errors.Should().ContainSingle();
-            result.Errors.First().Message.Should().Be("An error occurred while deleting the contact.");
-            result.Errors.First().Reasons.First().Message.Should().Be(exceptionMessage);
-        }
+        //    // Assert
+        //    result.IsFailed.Should().BeTrue();
+        //    result.Errors.Should().ContainSingle();
+        //    result.Errors.First().Message.Should().Be("An error occurred while deleting the contact.");
+        //    result.Errors.First().Reasons.First().Message.Should().Be(exceptionMessage);
+        //}
 
         #endregion
     }

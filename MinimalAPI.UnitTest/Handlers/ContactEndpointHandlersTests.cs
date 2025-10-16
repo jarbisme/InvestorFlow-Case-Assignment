@@ -17,12 +17,20 @@ namespace MinimalAPI.UnitTest.Handlers
     public class ContactEndpointHandlersTests
     {
         private readonly Mock<IContactService> _contactServiceMock;
+        private readonly Mock<IValidator<CreateContactRequest>> _createValidatorMock;
+        private readonly Mock<IValidator<UpdateContactRequest>> _updateValidatorMock;
         private readonly ContactEndpointHandlers _handlers;
 
         public ContactEndpointHandlersTests()
         {
             _contactServiceMock = new Mock<IContactService>();
-            _handlers = new ContactEndpointHandlers();
+            _createValidatorMock = new Mock<IValidator<CreateContactRequest>>();
+            _updateValidatorMock = new Mock<IValidator<UpdateContactRequest>>();
+
+            _handlers = new ContactEndpointHandlers(
+                _contactServiceMock.Object,
+                _createValidatorMock.Object,
+                _updateValidatorMock.Object);
         }
 
         #region GetAllContacts Tests
@@ -35,17 +43,17 @@ namespace MinimalAPI.UnitTest.Handlers
                 new() { Id = 1, Name = "John Doe", Email = "john@example.com", Phone = "123-456-7890" },
                 new() { Id = 2, Name = "Jane Smith", Email = "jane@example.com", Phone = "987-654-3210" }
             };
-            
+
             _contactServiceMock.Setup(x => x.GetAllContactsAsync())
                 .ReturnsAsync(Result.Ok(contacts));
 
-            // Act - direct call, no reflection needed
-            var result = await _handlers.GetAllContacts(_contactServiceMock.Object);
+            // Act
+            var result = await _handlers.GetAllContacts();
 
             // Assert
             var okResult = Assert.IsType<Ok<ApiResponse<List<Contact>>>>(result);
             var response = okResult.Value;
-            
+
             response.Should().NotBeNull();
             response.Status.Should().Be(ApiResponseStatus.Success);
             response.Data.Should().HaveCount(2);
@@ -61,24 +69,24 @@ namespace MinimalAPI.UnitTest.Handlers
         {
             // Arrange
             var contactId = 1;
-            var contact = new Contact 
-            { 
-                Id = contactId, 
-                Name = "John Doe", 
-                Email = "john@example.com", 
-                Phone = "123-456-7890" 
+            var contact = new Contact
+            {
+                Id = contactId,
+                Name = "John Doe",
+                Email = "john@example.com",
+                Phone = "123-456-7890"
             };
-            
+
             _contactServiceMock.Setup(x => x.GetContactByIdAsync(contactId))
                 .ReturnsAsync(Result.Ok<Contact?>(contact));
 
             // Act
-            var result = await _handlers.GetContactById(contactId, _contactServiceMock.Object);
+            var result = await _handlers.GetContactById(contactId);
 
             // Assert
             var okResult = Assert.IsType<Ok<ApiResponse<Contact>>>(result);
             var response = okResult.Value;
-            
+
             response.Should().NotBeNull();
             response.Status.Should().Be(ApiResponseStatus.Success);
             response.Data.Should().NotBeNull();
@@ -97,12 +105,12 @@ namespace MinimalAPI.UnitTest.Handlers
                 .ReturnsAsync(Result.Fail(errorMessage));
 
             // Act
-            var result = await _handlers.GetContactById(contactId, _contactServiceMock.Object);
+            var result = await _handlers.GetContactById(contactId);
 
             // Assert
             var jsonResult = GetJsonResultFromIResult<ApiResponse<Contact>>(result);
-            
-            jsonResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+
+            jsonResult.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
             jsonResult.Value.Status.Should().Be(ApiResponseStatus.Error);
             jsonResult.Value.Message.Should().Be(errorMessage);
         }
@@ -117,14 +125,14 @@ namespace MinimalAPI.UnitTest.Handlers
                 .ReturnsAsync(Result.Ok<Contact?>(null));
 
             // Act
-            var result = await _handlers.GetContactById(contactId, _contactServiceMock.Object);
+            var result = await _handlers.GetContactById(contactId);
 
             // Assert
             // This test will actually fail because your handler doesn't handle null values explicitly
             // You may want to update your handler to check for null values
             var okResult = Assert.IsType<Ok<ApiResponse<Contact>>>(result);
             var response = okResult.Value;
-            
+
             response.Should().NotBeNull();
             response.Status.Should().Be(ApiResponseStatus.Success);
             response.Data.Should().BeNull();
@@ -155,26 +163,25 @@ namespace MinimalAPI.UnitTest.Handlers
                 Phone = createRequest.Phone
             };
 
-            // Mock validator to pass validation
-            var validatorMock = new Mock<IValidator<CreateContactRequest>>();
+            // Setup validator to pass validation
             var validationResult = new FluentValidation.Results.ValidationResult();
-            validatorMock.Setup(v => v.ValidateAsync(createRequest, It.IsAny<CancellationToken>()))
+            _createValidatorMock.Setup(v => v.ValidateAsync(createRequest, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(validationResult);
 
             // Setup service to return success
-            _contactServiceMock.Setup(s => s.CreateContactAsync(It.Is<Contact>(c => 
-                c.Name == createRequest.Name && 
-                c.Email == createRequest.Email && 
+            _contactServiceMock.Setup(s => s.CreateContactAsync(It.Is<Contact>(c =>
+                c.Name == createRequest.Name &&
+                c.Email == createRequest.Email &&
                 c.Phone == createRequest.Phone)))
                 .ReturnsAsync(Result.Ok(createdContact));
 
             // Act
-            var result = await _handlers.CreateContact(createRequest, _contactServiceMock.Object, validatorMock.Object);
+            var result = await _handlers.CreateContact(createRequest);
 
             // Assert
             var createdResult = Assert.IsType<Created<ApiResponse<Contact>>>(result);
             createdResult.Location.Should().Be("/api/contacts/1");
-            
+
             var response = createdResult.Value;
             response.Status.Should().Be(ApiResponseStatus.Success);
             response.Message.Should().Be("Contact created successfully.");
@@ -189,25 +196,24 @@ namespace MinimalAPI.UnitTest.Handlers
             // Arrange
             var invalidRequest = new CreateContactRequest { Name = "" };
 
-            // Mock validator to fail validation
-            var validatorMock = new Mock<IValidator<CreateContactRequest>>();
+            // Setup validator to fail validation
             var validationResult = new FluentValidation.Results.ValidationResult();
             validationResult.Errors.Add(new FluentValidation.Results.ValidationFailure("Name", "Name is required"));
-            validatorMock.Setup(v => v.ValidateAsync(invalidRequest, It.IsAny<CancellationToken>()))
+            _createValidatorMock.Setup(v => v.ValidateAsync(invalidRequest, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(validationResult);
 
             // Act
-            var result = await _handlers.CreateContact(invalidRequest, _contactServiceMock.Object, validatorMock.Object);
+            var result = await _handlers.CreateContact(invalidRequest);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequest<ApiResponse<Contact>>>(result);
             var response = badRequestResult.Value;
-            
+
             response.Status.Should().Be(ApiResponseStatus.Fail);
             response.Message.Should().Be("Validation failed");
             response.Errors.Should().HaveCount(1);
             response.Errors.Should().Contain("Name is required");
-            
+
             // Verify service was never called
             _contactServiceMock.Verify(s => s.CreateContactAsync(It.IsAny<Contact>()), Times.Never);
         }
@@ -218,22 +224,21 @@ namespace MinimalAPI.UnitTest.Handlers
             // Arrange
             var request = new CreateContactRequest { Name = "John Doe" };
             var errorMessage = "Database connection failed";
-            
-            // Mock validator to pass validation
-            var validatorMock = new Mock<IValidator<CreateContactRequest>>();
+
+            // Setup validator to pass validation
             var validationResult = new FluentValidation.Results.ValidationResult();
-            validatorMock.Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
+            _createValidatorMock.Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(validationResult);
-    
+
             _contactServiceMock.Setup(s => s.CreateContactAsync(It.IsAny<Contact>()))
-                .ReturnsAsync(Result.Fail(errorMessage));
+                .ReturnsAsync(Result.Fail( new Error(errorMessage).WithMetadata("IsServerError", true)));
 
             // Act
-            var result = await _handlers.CreateContact(request, _contactServiceMock.Object, validatorMock.Object);
+            var result = await _handlers.CreateContact(request);
 
             // Assert
             var jsonResult = GetJsonResultFromIResult<ApiResponse<Contact>>(result);
-            
+
             jsonResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
             jsonResult.Value.Status.Should().Be(ApiResponseStatus.Error);
             jsonResult.Value.Message.Should().Be(errorMessage);
@@ -248,24 +253,36 @@ namespace MinimalAPI.UnitTest.Handlers
         {
             // Arrange
             var contactId = 1;
-            var updatedContact = new Contact
+            var updateRequest = new UpdateContactRequest
             {
-                Id = contactId,
                 Name = "John Updated",
                 Email = "john.updated@example.com",
                 Phone = "555-5678"
             };
 
-            _contactServiceMock.Setup(s => s.UpdateContactAsync(contactId, updatedContact))
+            var updatedContact = new Contact
+            {
+                Id = contactId,
+                Name = updateRequest.Name,
+                Email = updateRequest.Email,
+                Phone = updateRequest.Phone
+            };
+
+            // Setup validator to pass validation
+            var validationResult = new FluentValidation.Results.ValidationResult();
+            _updateValidatorMock.Setup(v => v.ValidateAsync(updateRequest, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(validationResult);
+
+            _contactServiceMock.Setup(s => s.UpdateContactAsync(contactId, It.IsAny<Contact>()))
                 .ReturnsAsync(Result.Ok(updatedContact));
 
             // Act
-            var result = await _handlers.UpdateContact(contactId, updatedContact, _contactServiceMock.Object);
+            var result = await _handlers.UpdateContact(contactId, updateRequest);
 
             // Assert
             var okResult = Assert.IsType<Ok<ApiResponse<Contact>>>(result);
             var response = okResult.Value;
-            
+
             response.Status.Should().Be(ApiResponseStatus.Success);
             response.Message.Should().Be("Contact updated successfully.");
             response.Data.Should().NotBeNull();
@@ -274,23 +291,57 @@ namespace MinimalAPI.UnitTest.Handlers
         }
 
         [Fact]
+        public async Task UpdateContact_ReturnsBadRequest_WhenValidationFails()
+        {
+            // Arrange
+            var contactId = 1;
+            var invalidRequest = new UpdateContactRequest { Name = "" };
+
+            // Setup validator to fail validation
+            var validationResult = new FluentValidation.Results.ValidationResult();
+            validationResult.Errors.Add(new FluentValidation.Results.ValidationFailure("Name", "Name is required"));
+            _updateValidatorMock.Setup(v => v.ValidateAsync(invalidRequest, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(validationResult);
+
+            // Act
+            var result = await _handlers.UpdateContact(contactId, invalidRequest);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequest<ApiResponse<Contact>>>(result);
+            var response = badRequestResult.Value;
+
+            response.Status.Should().Be(ApiResponseStatus.Fail);
+            response.Message.Should().Be("Validation failed");
+            response.Errors.Should().HaveCount(1);
+            response.Errors.Should().Contain("Name is required");
+
+            // Verify service was never called
+            _contactServiceMock.Verify(s => s.UpdateContactAsync(It.IsAny<int>(), It.IsAny<Contact>()), Times.Never);
+        }
+
+        [Fact]
         public async Task UpdateContact_ReturnsError_WhenServiceFails()
         {
             // Arrange
             var contactId = 999;
-            var contact = new Contact { Id = contactId, Name = "John Doe" };
+            var updateRequest = new UpdateContactRequest { Name = "John Doe" };
             var errorMessage = "Contact not found";
-            
-            _contactServiceMock.Setup(s => s.UpdateContactAsync(contactId, contact))
+
+            // Setup validator to pass validation
+            var validationResult = new FluentValidation.Results.ValidationResult();
+            _updateValidatorMock.Setup(v => v.ValidateAsync(updateRequest, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(validationResult);
+
+            _contactServiceMock.Setup(s => s.UpdateContactAsync(contactId, It.IsAny<Contact>()))
                 .ReturnsAsync(Result.Fail(errorMessage));
 
             // Act
-            var result = await _handlers.UpdateContact(contactId, contact, _contactServiceMock.Object);
+            var result = await _handlers.UpdateContact(contactId, updateRequest);
 
             // Assert
             var jsonResult = GetJsonResultFromIResult<ApiResponse<Contact>>(result);
-            
-            jsonResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+
+            jsonResult.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
             jsonResult.Value.Status.Should().Be(ApiResponseStatus.Error);
             jsonResult.Value.Message.Should().Be(errorMessage);
         }
@@ -308,7 +359,7 @@ namespace MinimalAPI.UnitTest.Handlers
                 .ReturnsAsync(Result.Ok(true));
 
             // Act
-            var result = await _handlers.DeleteContact(contactId, _contactServiceMock.Object);
+            var result = await _handlers.DeleteContact(contactId);
 
             // Assert
             Assert.IsType<NoContent>(result);
@@ -320,17 +371,17 @@ namespace MinimalAPI.UnitTest.Handlers
             // Arrange
             var contactId = 999;
             var errorMessage = "Contact not found";
-            
+
             _contactServiceMock.Setup(s => s.DeleteContactAsync(contactId))
                 .ReturnsAsync(Result.Fail(errorMessage));
 
             // Act
-            var result = await _handlers.DeleteContact(contactId, _contactServiceMock.Object);
+            var result = await _handlers.DeleteContact(contactId);
 
             // Assert
             var jsonResult = GetJsonResultFromIResult<ApiResponse<Contact>>(result);
-            
-            jsonResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+
+            jsonResult.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
             jsonResult.Value.Status.Should().Be(ApiResponseStatus.Error);
             jsonResult.Value.Message.Should().Be(errorMessage);
         }
@@ -343,13 +394,13 @@ namespace MinimalAPI.UnitTest.Handlers
         {
             // For results created with Results.Json()
             var resultType = result.GetType();
-            
+
             // Get properties using reflection
-            var valueProperty = resultType.GetProperty("Value") ?? 
+            var valueProperty = resultType.GetProperty("Value") ??
                 throw new InvalidOperationException("Could not find Value property on result");
-            var statusCodeProperty = resultType.GetProperty("StatusCode") ?? 
+            var statusCodeProperty = resultType.GetProperty("StatusCode") ??
                 throw new InvalidOperationException("Could not find StatusCode property on result");
-            
+
             var value = (T)valueProperty.GetValue(result)!;
             var statusCode = (int)statusCodeProperty.GetValue(result)!;
 
