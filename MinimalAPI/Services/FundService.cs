@@ -31,7 +31,9 @@ namespace MinimalAPI.Services
             }
             catch (Exception ex)
             {
-                return Result.Fail(new Error("An error occurred while retrieving funds.").CausedBy(ex.Message));
+                return Result.Fail(new Error("An error occurred while retrieving funds.")
+                    .CausedBy(ex.Message)
+                    .WithMetadata("IsServerError", true));
             }
         }
 
@@ -53,7 +55,9 @@ namespace MinimalAPI.Services
             }
             catch (Exception ex)
             {
-                return Result.Fail(new Error("An error occurred while retrieving the fund.").CausedBy(ex.Message));
+                return Result.Fail(new Error("An error occurred while retrieving the fund.")
+                    .CausedBy(ex.Message)
+                    .WithMetadata("IsServerError", true));
             }
         }
 
@@ -104,7 +108,9 @@ namespace MinimalAPI.Services
             }
             catch (Exception ex)
             {
-                return Result.Fail(new Error("An error occurred while adding the contact to the fund.").CausedBy(ex.Message));
+                return Result.Fail(new Error("An error occurred while adding the contact to the fund.")
+                    .CausedBy(ex.Message)
+                    .WithMetadata("IsServerError", true));
             }
         }
 
@@ -136,7 +142,9 @@ namespace MinimalAPI.Services
             }
             catch (Exception ex)
             {
-                return Result.Fail(new Error("An error occurred while removing the contact from the fund.").CausedBy(ex.Message));
+                return Result.Fail(new Error("An error occurred while removing the contact from the fund.")
+                    .CausedBy(ex.Message)
+                    .WithMetadata("IsServerError", true));
             }
         }
     }

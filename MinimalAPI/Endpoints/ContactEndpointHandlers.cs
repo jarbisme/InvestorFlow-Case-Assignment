@@ -35,9 +35,16 @@ namespace MinimalAPI.Endpoints
 
             if (result.IsFailed)
             {
+                var error = result.Errors.FirstOrDefault();
+                bool isServerError = error?.Metadata.ContainsKey("IsServerError") == true;
+                
+                int statusCode = isServerError ? 
+                    StatusCodes.Status500InternalServerError : 
+                    StatusCodes.Status400BadRequest;
+                
                 var errorResponse = ApiResponse<List<Contact>>.Error(
-                    result.Errors.FirstOrDefault()?.Message ?? "An error occurred while retrieving contacts.");
-                return Results.Json(errorResponse, statusCode: 500);
+                    error?.Message ?? "An error occurred while retrieving contacts.");
+                return Results.Json(errorResponse, statusCode: statusCode);
             }
 
             var apiResponse = ApiResponse<List<Contact>>.Success(result.Value!, "Contacts retrieved successfully.");
@@ -54,9 +61,16 @@ namespace MinimalAPI.Endpoints
 
             if (result.IsFailed)
             {
+                var error = result.Errors.FirstOrDefault();
+                bool isServerError = error?.Metadata.ContainsKey("IsServerError") == true;
+                
+                int statusCode = isServerError ? 
+                    StatusCodes.Status500InternalServerError : 
+                    StatusCodes.Status400BadRequest;
+                
                 var errorResponse = ApiResponse<Contact>.Error(
-                    result.Errors.FirstOrDefault()?.Message ?? "An error occurred while retrieving the contact.");
-                return Results.Json(errorResponse, statusCode: 500);
+                    error?.Message ?? "An error occurred while retrieving the contact.");
+                return Results.Json(errorResponse, statusCode: statusCode);
             }
 
             var apiResponse = ApiResponse<Contact>.Success(result.Value!, "Contact retrieved successfully.");
@@ -90,22 +104,16 @@ namespace MinimalAPI.Endpoints
 
             if (result.IsFailed)
             {
-                // Extract error messages from FluentResults
-                var errorMessages = result.Errors.Select(e => e.Message).ToList();
-
-                // Check if these are validation errors
-                if (errorMessages.Count > 1 || result.Errors.Any(e => e.Metadata.ContainsKey("ValidationError")))
-                {
-                    var failResponse = ApiResponse<Contact>.Fail(
-                        "Validation errors occurred while creating the contact.",
-                        result.Errors.Select(e => e.Message).ToList());
-                    return Results.BadRequest(failResponse);
-                }
-
-                // Single error or unexpected error - treat as server error
+                var error = result.Errors.FirstOrDefault();
+                bool isServerError = error?.Metadata.ContainsKey("IsServerError") == true;
+                
+                int statusCode = isServerError ? 
+                    StatusCodes.Status500InternalServerError : 
+                    StatusCodes.Status400BadRequest;
+                
                 var errorResponse = ApiResponse<Contact>.Error(
-                    errorMessages.FirstOrDefault() ?? "An error ocurred");
-                return Results.Json(errorResponse, statusCode: 500);
+                    error?.Message ?? "An error occurred while creating the contact.");
+                return Results.Json(errorResponse, statusCode: statusCode);
             }
 
             var successResponse = ApiResponse<Contact>.Success(
@@ -142,9 +150,16 @@ namespace MinimalAPI.Endpoints
             var result = await _contactService.UpdateContactAsync(id, contact);
             if (result.IsFailed)
             {
+                var error = result.Errors.FirstOrDefault();
+                bool isServerError = error?.Metadata.ContainsKey("IsServerError") == true;
+                
+                int statusCode = isServerError ? 
+                    StatusCodes.Status500InternalServerError : 
+                    StatusCodes.Status400BadRequest;
+                
                 var errorResponse = ApiResponse<Contact>.Error(
-                    result.Errors.FirstOrDefault()?.Message ?? "An error occurred while updating the contact.");
-                return Results.Json(errorResponse, statusCode: 500);
+                    error?.Message ?? "An error occurred while updating the contact.");
+                return Results.Json(errorResponse, statusCode: statusCode);
             }
 
             var apiResponse = ApiResponse<Contact>.Success(result.Value!, "Contact updated successfully.");
@@ -160,9 +175,16 @@ namespace MinimalAPI.Endpoints
             var result = await _contactService.DeleteContactAsync(id);
             if (result.IsFailed)
             {
+                var error = result.Errors.FirstOrDefault();
+                bool isServerError = error?.Metadata.ContainsKey("IsServerError") == true;
+                
+                int statusCode = isServerError ? 
+                    StatusCodes.Status500InternalServerError : 
+                    StatusCodes.Status400BadRequest;
+                
                 var errorResponse = ApiResponse<Contact>.Error(
-                    result.Errors.FirstOrDefault()?.Message ?? "An error occurred while deleting the contact.");
-                return Results.Json(errorResponse, statusCode: 500);
+                    error?.Message ?? "An error occurred while deleting the contact.");
+                return Results.Json(errorResponse, statusCode: statusCode);
             }
 
             return Results.NoContent();

@@ -30,7 +30,9 @@ namespace MinimalAPI.Services
             }
             catch (Exception ex)
             {
-                return Result.Fail(new Error("An error occurred while retrieving contacts.").CausedBy(ex.Message));
+                return Result.Fail(new Error("An error occurred while retrieving contacts.")
+                    .CausedBy(ex.Message)
+                    .WithMetadata("IsServerError", true));
             }
         }
 
@@ -53,7 +55,9 @@ namespace MinimalAPI.Services
             }
             catch (Exception ex)
             {
-                return Result.Fail(new Error("An error occurred while retrieving the contact.").CausedBy(ex.Message));
+                return Result.Fail(new Error("An error occurred while retrieving the contact.")
+                    .CausedBy(ex.Message)
+                    .WithMetadata("IsServerError", true));
             }
         }
 
@@ -71,7 +75,9 @@ namespace MinimalAPI.Services
             }
             catch (Exception ex)
             {
-                return Result.Fail(new Error("An error occurred while creating the contact.").CausedBy(ex.Message));
+                return Result.Fail(new Error("An error occurred while creating the contact.")
+                    .CausedBy(ex.Message)
+                    .WithMetadata("IsServerError", true));
             }
         }
 
@@ -96,7 +102,9 @@ namespace MinimalAPI.Services
             }
             catch (Exception ex)
             {
-                return Result.Fail(new Error("An error occurred while updating the contact.").CausedBy(ex.Message));
+                return Result.Fail(new Error("An error occurred while updating the contact.")
+                    .CausedBy(ex.Message)
+                    .WithMetadata("IsServerError", true));
             }
         }
 
@@ -133,7 +141,9 @@ namespace MinimalAPI.Services
             }
             catch (Exception ex)
             {
-                return Result.Fail(new Error("An error occurred while deleting the contact.").CausedBy(ex.Message));
+                return Result.Fail(new Error("An error occurred while deleting the contact.")
+                    .CausedBy(ex.Message)
+                    .WithMetadata("IsServerError", true));
             }
         }
     }

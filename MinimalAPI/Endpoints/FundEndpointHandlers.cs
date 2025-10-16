@@ -27,9 +27,16 @@ namespace MinimalAPI.Endpoints
             var result = await _fundService.GetAllFundsAsync();
             if (result.IsFailed)
             {
+                var error = result.Errors.FirstOrDefault();
+                bool isServerError = error?.Metadata.ContainsKey("IsServerError") == true;
+                
+                int statusCode = isServerError ? 
+                    StatusCodes.Status500InternalServerError : 
+                    StatusCodes.Status400BadRequest;
+                
                 var errorResponse = ApiResponse<List<Fund>>.Error(
-                    result.Errors.FirstOrDefault()?.Message ?? "An error occurred while retrieving funds.");
-                return Results.Json(errorResponse, statusCode: 500);
+                    error?.Message ?? "An error occurred while retrieving funds.");
+                return Results.Json(errorResponse, statusCode: statusCode);
             }
 
             // Create anonymous objects for each fund
@@ -52,9 +59,16 @@ namespace MinimalAPI.Endpoints
             var result = await _fundService.GetFundByIdAsync(id);
             if (result.IsFailed)
             {
+                var error = result.Errors.FirstOrDefault();
+                bool isServerError = error?.Metadata.ContainsKey("IsServerError") == true;
+                
+                int statusCode = isServerError ? 
+                    StatusCodes.Status500InternalServerError : 
+                    StatusCodes.Status400BadRequest;
+                
                 var errorResponse = ApiResponse<Fund>.Error(
-                    result.Errors.FirstOrDefault()?.Message ?? "An error occurred while retrieving the fund.");
-                return Results.Json(errorResponse, statusCode: 500);
+                    error?.Message ?? "An error occurred while retrieving the fund.");
+                return Results.Json(errorResponse, statusCode: statusCode);
             }
 
             // Create anonymous object without circular references
@@ -95,9 +109,16 @@ namespace MinimalAPI.Endpoints
             var result = await _fundService.AddContactToFundAsync(fundId, request.ContactId);
             if (result.IsFailed)
             {
+                var error = result.Errors.FirstOrDefault();
+                bool isServerError = error?.Metadata.ContainsKey("IsServerError") == true;
+                
+                int statusCode = isServerError ? 
+                    StatusCodes.Status500InternalServerError : 
+                    StatusCodes.Status400BadRequest;
+                
                 var errorResponse = ApiResponse.Error(
-                    result.Errors.FirstOrDefault()?.Message ?? "An error occurred while adding contact to fund.");
-                return Results.Json(errorResponse, statusCode: 500);
+                    error?.Message ?? "An error occurred while adding contact to fund.");
+                return Results.Json(errorResponse, statusCode: statusCode);
             }
 
             var successResponse = ApiResponse.SuccessNoData("Contact added to fund successfully.");
@@ -114,10 +135,18 @@ namespace MinimalAPI.Endpoints
             var result = await _fundService.RemoveContactFromFundAsync(fundId, contactId);
             if (result.IsFailed)
             {
+                var error = result.Errors.FirstOrDefault();
+                bool isServerError = error?.Metadata.ContainsKey("IsServerError") == true;
+                
+                int statusCode = isServerError ? 
+                    StatusCodes.Status500InternalServerError : 
+                    StatusCodes.Status400BadRequest;
+                
                 var errorResponse = ApiResponse.Error(
-                    result.Errors.FirstOrDefault()?.Message ?? "An error occurred while removing contact from fund.");
-                return Results.Json(errorResponse, statusCode: 500);
+                    error?.Message ?? "An error occurred while removing contact from fund.");
+                return Results.Json(errorResponse, statusCode: statusCode);
             }
+            
             var successResponse = ApiResponse.SuccessNoData("Contact removed from fund successfully.");
             return Results.Ok(successResponse);
         }
